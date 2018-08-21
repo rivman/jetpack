@@ -5,10 +5,14 @@ import React from 'react';
 import { translate as __ } from 'i18n-calypso';
 import TextInput from 'components/text-input';
 import ExternalLink from 'components/external-link';
+import { connect } from 'react-redux';
 
 /**
  * Internal dependencies
  */
+import {
+	isFetchingSiteData,
+} from 'state/site';
 import {
 	FormFieldset,
 	FormLabel
@@ -17,6 +21,8 @@ import { ModuleSettingsForm as moduleSettingsForm } from 'components/module-sett
 import SettingsCard from 'components/settings-card';
 import SettingsGroup from 'components/settings-group';
 import JetpackBanner from 'components/jetpack-banner';
+import verifySiteGoogle from 'state/site-verify/actions';
+import { getSiteID } from 'state/site/reducer';
 
 class VerificationServicesComponent extends React.Component {
 	activateVerificationTools = () => {
@@ -140,6 +146,7 @@ class VerificationServicesComponent extends React.Component {
 										className="code"
 										disabled={ this.props.isUpdating( item.id ) }
 										onChange={ this.props.onOptionChange } />
+									{ 'google' === item.id && ! this.props.fetchingSiteData && <button onClick={ this.handleClickGoogleVerify }>Click Me</button> }
 								</FormLabel>
 							) )
 						}
@@ -148,6 +155,25 @@ class VerificationServicesComponent extends React.Component {
 			</SettingsCard>
 		);
 	}
+
+	handleClickGoogleVerify = ( event ) => {
+		event.preventDefault();
+		this.props.verifySiteGoogle();
+	}
 }
 
-export const VerificationServices = moduleSettingsForm( VerificationServicesComponent );
+export const VerificationServices = connect(
+	state => {
+		return {
+			fetchingSiteData: isFetchingSiteData( state ),
+			siteID: getSiteID( state ),
+		};
+	},
+	dispatch => {
+		return {
+			verifySiteGoogle: () => {
+				return dispatch( verifySiteGoogle() );
+			}
+		};
+	}
+)( moduleSettingsForm( VerificationServicesComponent ) );
