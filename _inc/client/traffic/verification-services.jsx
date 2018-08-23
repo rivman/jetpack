@@ -21,7 +21,7 @@ import { ModuleSettingsForm as moduleSettingsForm } from 'components/module-sett
 import SettingsCard from 'components/settings-card';
 import SettingsGroup from 'components/settings-group';
 import JetpackBanner from 'components/jetpack-banner';
-import verifySiteGoogle from 'state/site-verify/actions';
+import { verifySiteGoogle } from 'state/site-verify';
 import { getSiteID } from 'state/site/reducer';
 import requestExternalAccess from 'lib/sharing';
 import { getExternalServiceConnectUrl } from 'state/publicize/reducer';
@@ -174,11 +174,7 @@ export const VerificationServices = connect(
 			siteVerificationConnectUrl: getExternalServiceConnectUrl( state, 'google_site_verification' )
 		};
 	},
-	dispatch => {
-		return {
-			verifySiteGoogle: () => {
-				return dispatch( verifySiteGoogle() );
-			}
-		};
+	{
+		verifySiteGoogle,
 	}
 )( moduleSettingsForm( VerificationServicesComponent ) );
