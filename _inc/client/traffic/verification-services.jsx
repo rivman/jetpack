@@ -23,6 +23,8 @@ import SettingsGroup from 'components/settings-group';
 import JetpackBanner from 'components/jetpack-banner';
 import verifySiteGoogle from 'state/site-verify/actions';
 import { getSiteID } from 'state/site/reducer';
+import requestExternalAccess from 'lib/sharing';
+import { getExternalServiceConnectUrl } from 'state/publicize/reducer';
 
 class VerificationServicesComponent extends React.Component {
 	activateVerificationTools = () => {
@@ -158,7 +160,9 @@ class VerificationServicesComponent extends React.Component {
 
 	handleClickGoogleVerify = ( event ) => {
 		event.preventDefault();
-		this.props.verifySiteGoogle();
+		requestExternalAccess( this.props.siteVerificationConnectUrl, () => {
+			this.props.verifySiteGoogle();
+		} );
 	}
 }
 
@@ -167,6 +171,7 @@ export const VerificationServices = connect(
 		return {
 			fetchingSiteData: isFetchingSiteData( state ),
 			siteID: getSiteID( state ),
+			siteVerificationConnectUrl: getExternalServiceConnectUrl( state, 'google_site_verification' )
 		};
 	},
 	dispatch => {
