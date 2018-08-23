@@ -358,6 +358,12 @@ class Jetpack_Core_Json_Api_Endpoints {
 			'permission_callback' => __CLASS__ . '::view_admin_page_permission_check',
 		) );
 
+		// verify the domain w/ google
+		register_rest_route( 'jetpack/v4', '/verify/google', array(
+			'methods' => WP_REST_Server::CREATABLE,
+			'callback' => __CLASS__ . '::verify_site_with_google',
+		) );
+
 		// Plugins: get list of all plugins.
 		register_rest_route( 'jetpack/v4', '/plugins', array(
 			'methods' => WP_REST_Server::READABLE,
@@ -2874,6 +2880,41 @@ class Jetpack_Core_Json_Api_Endpoints {
 
 		return new WP_Error( 'not_found', esc_html__( 'Unable to list plugins.', 'jetpack' ), array( 'status' => 404 ) );
 	}
+
+	/**
+	 * Verify Site with Google.
+	 *
+	 * @since 4.2.0
+	 *
+	 * @return WP_REST_Response|WP_Error Web Resource of Site or meta token or wp_error
+	 */
+	public static function verify_site_with_google() {
+		// Notify WPCOM about the master user change
+		Jetpack::load_xml_rpc_client();
+		$xml = new Jetpack_IXR_Client( array(
+			'user_id' => get_current_user_id(),
+		) );
+		$xml->query( 'jetpack.verifySiteGoogle', get_current_user_id() );
+
+		if ( ! $xml->isError() ) {
+			return rest_ensure_response(
+				array(
+					'code' => 'success',
+				)
+			);
+		}
+		// // development error
+		// if ( $xml->isError() ) {
+		// 	return $xml->get_jetpack_error();
+		// }
+
+		return new WP_Error(
+			'error_verifying_site_google',
+			esc_html__( 'Could not verify site with Google: ' . $xml->getErrorMessage() , 'jetpack' ),
+			array( 'status' => 500, )
+		);
+	}
+
 
 	/**
 	 * Get data about the queried plugin. Currently it only returns whether the plugin is active or not.
