@@ -312,7 +312,10 @@ class Jetpack_React_Page extends Jetpack_Admin_Page {
 	}
 
 	function get_external_services_connect_urls() {
-		$publicize = new Publicize;
+		if ( ! Jetpack::is_module_active( 'publicize' ) ) {
+			return array();
+		}
+		$publicize = publicize_init();
 		$services = array_keys( $publicize->get_services( 'all' ) );
 		$connect_urls = array();
 		foreach ( $services as $service_name ) {
