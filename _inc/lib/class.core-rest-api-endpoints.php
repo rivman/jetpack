@@ -381,9 +381,18 @@ class Jetpack_Core_Json_Api_Endpoints {
 
 		// Widgets: get information about a widget that supports it.
 		register_rest_route( 'jetpack/v4', '/verify/(?P<service>[a-z\-_]+)', array(
+			'methods' => WP_REST_Server::EDITABLE,
+			'callback' => __CLASS__ . '::verify_site',
+			// 'callback' => array( $site_endpoint, 'verify_site' ),
+			// 'permission_callback' => array( $site_endpoint, 'can_request' ),
+		) );
+
+		// Widgets: get information about a widget that supports it.
+		register_rest_route( 'jetpack/v4', '/checkverify/(?P<service>[a-z\-_]+)', array(
 			'methods' => WP_REST_Server::READABLE,
-			'callback' => array( $site_endpoint, 'verify_site' ),
-			'permission_callback' => array( $site_endpoint, 'can_request' ),
+			'callback' => __CLASS__ . '::site_verified_or_token',
+			// 'callback' => array( $site_endpoint, 'verify_site' ),
+			// 'permission_callback' => array( $site_endpoint, 'can_request' ),
 		) );
 	}
 
@@ -466,6 +475,46 @@ class Jetpack_Core_Json_Api_Endpoints {
 		}
 
 		return $result;
+	}
+
+	public static function site_verified_or_token( $request ) {
+		// Make the API request
+		Jetpack::load_xml_rpc_client();
+ 		$xml = new Jetpack_IXR_Client( array(
+ 			'user_id' => get_current_user_id(),
+		 ) );
+
+		 $xml->query( 'jetpack.isSiteVerifiedOrToken', array(
+			'user_id' => get_current_user_id(),
+			'service' => $request[ 'service' ],
+			)
+		);
+
+		if ( $xml->isError() ) {
+			return new WP_Error( 'error_checking_if_site_verified_google', printf( '%s: %s', $xml->getErrorCode(), $xml->getErrorMessage() ) );
+		} else {
+			return $xml->getResponse() ;
+		}
+	}
+
+	public static function verify_site( $request ) {
+		// Make the API request
+		Jetpack::load_xml_rpc_client();
+ 		$xml = new Jetpack_IXR_Client( array(
+ 			'user_id' => get_current_user_id(),
+ 		) );
+
+ 		$xml->query( 'jetpack.verifySite', array(
+				'user_id' => get_current_user_id(),
+				'service' => $request[ 'service' ],
+			)
+		);
+
+		if ( $xml->isError() ) {
+			return new WP_Error( 'error_verifying_site_google', printf( '%s: %s', $xml->getErrorCode(), $xml->getErrorMessage() ) );
+		} else {
+			return $xml->getResponse() ;
+		}
 	}
 
 	/**

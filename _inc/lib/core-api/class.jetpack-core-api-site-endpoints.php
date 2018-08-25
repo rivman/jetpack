@@ -58,41 +58,4 @@ class Jetpack_Core_API_Site_Endpoint {
 		return current_user_can( 'jetpack_manage_modules' );
 	}
 
-	/**
-	 * Returns the result of `/sites/%s/verify-site/%s` endpoint call.
-	 */
-	public static function verify_site( $request ) {
-		// Make the API request
-		$request = sprintf( '/sites/%d/verify-site/%s', Jetpack_Options::get_option( 'id' ), $request['service'] );
-		$response = Jetpack_Client::wpcom_json_api_request_as_blog( $request, '1.1' );
-
-		// Bail if there was an error or malformed response
-		if ( is_wp_error( $response ) || ! is_array( $response ) || ! isset( $response['body'] ) ) {
-			return new WP_Error(
-				'failed_to_fetch_data',
-				esc_html__( 'Unable to fetch the requested data.', 'jetpack' ),
-				array( 'status' => 500 )
-			);
-		}
-
-		// Decode the results
-		$results = json_decode( $response['body'], true );
-
-		error_log( '$response = ' . print_r( $response, true ) );
-		// Bail if there were no results
-		if ( ! is_array( $results ) ) {
-			return new WP_Error(
-				'failed_to_fetch_data',
-				esc_html__( 'Unable to fetch the requested data.', 'jetpack' ),
-				array( 'status' => 500 )
-			);
-		}
-
-		return rest_ensure_response( array(
-				'code' => 'success',
-				'message' => esc_html__( 'Site verified.', 'jetpack' ),
-				'data' => wp_remote_retrieve_body( $response ),
-			)
-		);
-	}
 }
