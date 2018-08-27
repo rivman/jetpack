@@ -467,13 +467,22 @@ class Jetpack_Core_Json_Api_Endpoints {
 		return $result;
 	}
 
+	/**
+	 * Checks if this site has been verified using a service, typically Google right now
+	 *
+	 * @since 6.5.0
+	 *
+	 * @param WP_REST_Request $request The request sent to the WP REST API.
+	 *
+	 * @return array|wp-error
+	 */
 	public static function is_site_verified_and_token( $request ) {
 		Jetpack::load_xml_rpc_client();
  		$xml = new Jetpack_IXR_Client( array(
  			'user_id' => get_current_user_id(),
-		 ) );
+		) );
 
-		 $xml->query( 'jetpack.isSiteVerified', array(
+		$xml->query( 'jetpack.isSiteVerified', array(
 			'user_id' => get_current_user_id(),
 			'service' => $request[ 'service' ],
 			)
