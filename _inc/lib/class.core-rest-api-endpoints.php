@@ -480,7 +480,7 @@ class Jetpack_Core_Json_Api_Endpoints {
 		);
 
 		if ( $xml->isError() ) {
-			return new WP_Error( 'error_checking_if_site_verified_google', printf( '%s: %s', $xml->getErrorCode(), $xml->getErrorMessage() ) );
+			return new WP_Error( 'error_checking_if_site_verified_google', sprintf( '%s: %s', $xml->getErrorCode(), $xml->getErrorMessage() ) );
 		} else {
 			return $xml->getResponse();
 		}
