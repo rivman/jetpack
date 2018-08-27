@@ -8,9 +8,3 @@ export const verifySiteGoogle = () => {
 		return restApi.verifySiteGoogle();
 	};
 };
-
-export const checkVerifySiteGoogle = () => {
-	return () => {
-		return restApi.checkVerifySiteGoogle();
-	};
-};

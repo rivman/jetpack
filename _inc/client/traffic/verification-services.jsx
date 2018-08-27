@@ -21,7 +21,7 @@ import { ModuleSettingsForm as moduleSettingsForm } from 'components/module-sett
 import SettingsCard from 'components/settings-card';
 import SettingsGroup from 'components/settings-group';
 import JetpackBanner from 'components/jetpack-banner';
-import { checkVerifySiteGoogle, verifySiteGoogle } from 'state/site-verify';
+import { verifySiteGoogle } from 'state/site-verify';
 import { getSiteID } from 'state/site/reducer';
 import requestExternalAccess from 'lib/sharing';
 import { getExternalServiceConnectUrl } from 'state/publicize/reducer';
@@ -148,7 +148,7 @@ class VerificationServicesComponent extends React.Component {
 										className="code"
 										disabled={ this.props.isUpdating( item.id ) }
 										onChange={ this.props.onOptionChange } />
-									{ 'google' === item.id && ! this.props.fetchingSiteData && <button onClick={ this.handleClickGoogleVerify }>Click Me OR ELSE</button> }
+									{ 'google' === item.id && ! this.props.fetchingSiteData && <button onClick={ this.handleClickGoogleVerify }>Autofill with Google Connect</button> }
 								</FormLabel>
 							) )
 						}
@@ -161,12 +161,14 @@ class VerificationServicesComponent extends React.Component {
 	handleClickGoogleVerify = ( event ) => {
 		event.preventDefault();
 		requestExternalAccess( this.props.siteVerificationConnectUrl, () => {
-			this.props.checkVerifySiteGoogle();/*.then( ( verificationString ) => {
-				console.log( `verifcation string: ${ verificationString }` );
-			} )
-			.catch( ( err ) => {
-				console.log( `failed to get verifcation string: ${ err.toString() }` );
-			} );*/
+			this.props.verifySiteGoogle().then( ( { token } ) => {
+				if ( token ) {
+					this.props.updateOptions( { google: token } ).then( () => {
+						this.props.refreshSettings();
+						this.props.verifySiteGoogle();
+					} );
+				}
+			} );
 		} );
 	}
 }
@@ -180,7 +182,6 @@ export const VerificationServices = connect(
 		};
 	},
 	{
-		verifySiteGoogle,
-		checkVerifySiteGoogle
+		verifySiteGoogle
 	}
 )( moduleSettingsForm( VerificationServicesComponent ) );
