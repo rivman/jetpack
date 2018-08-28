@@ -21,7 +21,7 @@ import { ModuleSettingsForm as moduleSettingsForm } from 'components/module-sett
 import SettingsCard from 'components/settings-card';
 import SettingsGroup from 'components/settings-group';
 import JetpackBanner from 'components/jetpack-banner';
-import { verifySiteGoogle } from 'state/site-verify';
+import { checkVerifyStatusGoogle } from 'state/site-verify';
 import { getSiteID } from 'state/site/reducer';
 // eslint-disable-next-line no-unused-vars
 import requestExternalAccess from 'lib/sharing';
@@ -183,7 +183,7 @@ class VerificationServicesComponent extends React.Component {
 		// token missing? request token, start again
 		//
 
-		this.props.verifySiteGoogle().then( data => {
+		this.props.checkVerifyStatusGoogle().then( data => {
 			// eslint-disable-next-line no-console
 			console.warn( 'verified', data );
 		} ).catch( error => {
@@ -192,11 +192,11 @@ class VerificationServicesComponent extends React.Component {
 		} );
 
 		// requestExternalAccess( this.props.googleSiteVerificationConnectUrl, () => {
-		// 	this.props.verifySiteGoogle().then( ( { token } ) => {
+		// 	this.props.checkVerifyStatusGoogle().then( ( { token } ) => {
 		// 		if ( token ) {
 		// 			this.props.updateOptions( { google: token } ).then( () => {
 		// 				this.props.refreshSettings();
-		// 				this.props.verifySiteGoogle();
+		// 				this.props.checkVerifyStatusGoogle();
 		// 			} );
 		// 		}
 		// 	} );
@@ -214,6 +214,6 @@ export const VerificationServices = connect(
 		};
 	},
 	{
-		verifySiteGoogle
+		checkVerifyStatusGoogle
 	}
 )( moduleSettingsForm( VerificationServicesComponent ) );

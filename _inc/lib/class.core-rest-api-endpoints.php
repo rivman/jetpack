@@ -379,10 +379,16 @@ class Jetpack_Core_Json_Api_Endpoints {
 			'permission_callback' => array( $widget_endpoint, 'can_request' ),
 		) );
 
-		// Widgets: get information about a widget that supports it.
+		// Site Verify: check if the site is verified, and a get verification token if not
+		register_rest_route( 'jetpack/v4', '/verify-site/(?P<service>[a-z\-_]+)', array(
+			'methods' => WP_REST_Server::READABLE,
+			'callback' => __CLASS__ . '::is_site_verified_and_token',
+		) );
+
+		// Site Verify: tell a service to verify the site
 		register_rest_route( 'jetpack/v4', '/verify-site/(?P<service>[a-z\-_]+)', array(
 			'methods' => WP_REST_Server::EDITABLE,
-			'callback' => __CLASS__ . '::is_site_verified_and_token',
+			'callback' => __CLASS__ . '::verify_site',
 		) );
 	}
 
@@ -505,6 +511,11 @@ class Jetpack_Core_Json_Api_Endpoints {
 
 			return $response;
 		}
+	}
+
+	public static function verify_site( $request ) {
+		error_log("not implemented");
+		return new WP_Error( 'not_implemented', "Please create me");
 	}
 
 	/**
