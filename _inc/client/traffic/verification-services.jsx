@@ -23,8 +23,10 @@ import SettingsGroup from 'components/settings-group';
 import JetpackBanner from 'components/jetpack-banner';
 import { verifySiteGoogle } from 'state/site-verify';
 import { getSiteID } from 'state/site/reducer';
+// eslint-disable-next-line no-unused-vars
 import requestExternalAccess from 'lib/sharing';
 import { getExternalServiceConnectUrl } from 'state/publicize/reducer';
+import { isFetchingGoogleSiteVerify } from 'state/site-verify/reducer';
 
 class VerificationServicesComponent extends React.Component {
 	activateVerificationTools = () => {
@@ -148,7 +150,7 @@ class VerificationServicesComponent extends React.Component {
 										className="code"
 										disabled={ this.props.isUpdating( item.id ) }
 										onChange={ this.props.onOptionChange } />
-									{ 'google' === item.id && ! this.props.fetchingSiteData && <button onClick={ this.handleClickGoogleVerify }>Autofill with Google Connect</button> }
+									{ this.renderConnectButton( item.id ) }
 								</FormLabel>
 							) )
 						}
@@ -158,18 +160,47 @@ class VerificationServicesComponent extends React.Component {
 		);
 	}
 
+	renderConnectButton( id ) {
+		if ( 'google' !== id ) {
+			return null;
+		}
+
+		let label = __( 'Click to Verify' );
+
+		if ( this.props.fetchingGoogleSiteVerify ) {
+			label = __( 'Verifying...' );
+		}
+
+		const disabled = this.props.fetchingSiteData || this.props.fetchingGoogleSiteVerify;
+
+		return <button disabled={ disabled } onClick={ this.handleClickGoogleVerify }>{ label }</button>;
+	}
+
 	handleClickGoogleVerify = ( event ) => {
 		event.preventDefault();
-		requestExternalAccess( this.props.siteVerificationConnectUrl, () => {
-			this.props.verifySiteGoogle().then( ( { token } ) => {
-				if ( token ) {
-					this.props.updateOptions( { google: token } ).then( () => {
-						this.props.refreshSettings();
-						this.props.verifySiteGoogle();
-					} );
-				}
-			} );
+
+		// make a request
+		// token missing? request token, start again
+		//
+
+		this.props.verifySiteGoogle().then( data => {
+			// eslint-disable-next-line no-console
+			console.warn( 'verified', data );
+		} ).catch( error => {
+			// eslint-disable-next-line no-console
+			console.error( 'error', error );
 		} );
+
+		// requestExternalAccess( this.props.googleSiteVerificationConnectUrl, () => {
+		// 	this.props.verifySiteGoogle().then( ( { token } ) => {
+		// 		if ( token ) {
+		// 			this.props.updateOptions( { google: token } ).then( () => {
+		// 				this.props.refreshSettings();
+		// 				this.props.verifySiteGoogle();
+		// 			} );
+		// 		}
+		// 	} );
+		// } );
 	}
 }
 
@@ -178,7 +209,8 @@ export const VerificationServices = connect(
 		return {
 			fetchingSiteData: isFetchingSiteData( state ),
 			siteID: getSiteID( state ),
-			siteVerificationConnectUrl: getExternalServiceConnectUrl( state, 'google_site_verification' )
+			googleSiteVerificationConnectUrl: getExternalServiceConnectUrl( state, 'google_site_verification' ),
+			fetchingGoogleSiteVerify: isFetchingGoogleSiteVerify( state )
 		};
 	},
 	{

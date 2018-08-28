@@ -413,6 +413,8 @@ class Jetpack_Core_API_Data extends Jetpack_Core_API_XMLRPC_Consumer_Endpoint {
 
 		$settings = Jetpack_Core_Json_Api_Endpoints::get_updateable_data_list( 'settings' );
 
+		// error_log( print_r( $settings, 1 ) );
+
 		if ( ! function_exists( 'is_plugin_active' ) ) {
 			require_once ABSPATH . 'wp-admin/includes/plugin.php';
 		}
@@ -751,6 +753,17 @@ class Jetpack_Core_API_Data extends Jetpack_Core_API_XMLRPC_Consumer_Endpoint {
 
 					// If option value was the same, consider it done.
 					$updated = $grouped_options_current != $grouped_options ? update_option( 'verification_services_codes', $grouped_options ) : true;
+					break;
+
+				case 'google-status':
+				// case 'bing':
+				// case 'pinterest':
+				// case 'yandex':
+					$grouped_options          = $grouped_options_current = (array) get_option( 'verification_services_statuses' );
+					$grouped_options[$option] = $value;
+
+					// If option value was the same, consider it done.
+					$updated = $grouped_options_current != $grouped_options ? update_option( 'verification_services_statuses', $grouped_options ) : true;
 					break;
 
 				case 'sharing_services':

@@ -468,9 +468,11 @@ class Jetpack_Core_Json_Api_Endpoints {
 	}
 
 	/**
-	 * Checks if this site has been verified using a service, typically Google right now
+	 * Checks if this site has been verified using a service - only 'google' supported at present
 	 *
-	 * @since 6.5.0
+	 * Returns 'verified' = true/false, and a token if 'verified' is false and site is ready for verification
+	 *
+	 * @since 6.6.0
 	 *
 	 * @param WP_REST_Request $request The request sent to the WP REST API.
 	 *
@@ -491,7 +493,17 @@ class Jetpack_Core_Json_Api_Endpoints {
 		if ( $xml->isError() ) {
 			return new WP_Error( 'error_checking_if_site_verified_google', sprintf( '%s: %s', $xml->getErrorCode(), $xml->getErrorMessage() ) );
 		} else {
-			return $xml->getResponse();
+			$response = $xml->getResponse();
+			error_log(print_r( $response,1 ));
+			// if ( ! $response['verified'] && $response['token'] ) {
+			// 	// set token option now
+			// }
+
+			if ( $response['verified'] ) {
+				// if the site's already verified for any reason, let's save the google-verified option
+			}
+
+			return $response;
 		}
 	}
 
@@ -2619,7 +2631,10 @@ class Jetpack_Core_Json_Api_Endpoints {
 
 			case 'verification-tools':
 				// It's local, but it must be broken apart since it's saved as an array.
-				$options = self::split_options( $options, get_option( 'verification_services_codes' ) );
+				$options = array_merge(
+					self::split_options( $options, get_option( 'verification_services_codes' ) ),
+					self::split_options( $options, get_option( 'verification_services_statuses' ) )
+				);
 				break;
 
 			case 'google-analytics':
