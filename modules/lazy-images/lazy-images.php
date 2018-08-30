@@ -55,10 +55,8 @@ class Jetpack_Lazy_Images {
 		add_filter( 'post_thumbnail_html', array( $this, 'add_image_placeholders' ), PHP_INT_MAX );
 		add_filter( 'get_avatar', array( $this, 'add_image_placeholders' ), PHP_INT_MAX );
 		add_filter( 'widget_text', array( $this, 'add_image_placeholders' ), PHP_INT_MAX );
-		add_filter( 'get_image_tag', array( $this, 'add_image_placeholders' ), PHP_INT_MAX);
-
-		// TODO: Just commenting out this filter isn't a great idea. We added it originally to add some support for a theme.
-		// add_filter( 'wp_get_attachment_image_attributes', array( __CLASS__, 'process_image_attributes' ), PHP_INT_MAX );
+		add_filter( 'get_image_tag', array( $this, 'add_image_placeholders' ), PHP_INT_MAX );
+		add_filter( 'wp_get_attachment_image_attributes', array( __CLASS__, 'process_image_attributes' ), PHP_INT_MAX, 3 );
 	}
 
 	public function remove_filters() {
@@ -66,10 +64,8 @@ class Jetpack_Lazy_Images {
 		remove_filter( 'post_thumbnail_html', array( $this, 'add_image_placeholders' ), PHP_INT_MAX );
 		remove_filter( 'get_avatar', array( $this, 'add_image_placeholders' ), PHP_INT_MAX );
 		remove_filter( 'widget_text', array( $this, 'add_image_placeholders' ), PHP_INT_MAX );
-		remove_filter( 'get_image_tag', array( $this, 'add_image_placeholders' ), PHP_INT_MAX);
-
-		// TODO: Same as todo above.
-		// remove_filter( 'wp_get_attachment_image_attributes', array( __CLASS__, 'process_image_attributes' ), PHP_INT_MAX );
+		remove_filter( 'get_image_tag', array( $this, 'add_image_placeholders' ), PHP_INT_MAX );
+		remove_filter( 'wp_get_attachment_image_attributes', array( __CLASS__, 'process_image_attributes' ), PHP_INT_MAX, 3 );
 	}
 
 	/**
@@ -192,11 +188,13 @@ class Jetpack_Lazy_Images {
 	 *
 	 * @since 5.7.0
 	 *
-	 * @param array $attributes
+	 * @param array        $attributes The attributes of the image, such as src and srcset.
+	 * @param WP_Post      $attachment When called via filter, will contain a WP_Post object for the attachment.
+	 * @param array|string $size       When called via filter, will be either a string or an array specifying the size of the image.
 	 *
 	 * @return array The updated image attributes array with lazy load attributes
 	 */
-	static function process_image_attributes( $attributes ) {
+	static function process_image_attributes( $attributes, $attachment = null, $size = null ) {
 		if ( empty( $attributes['src'] ) ) {
 			return $attributes;
 		}
