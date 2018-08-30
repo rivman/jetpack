@@ -115,7 +115,6 @@ var jetpackLazyImagesModule = function( $ ) {
 
 		// Add a load handler on the image so that we'll replace the placeholder once this image is loaded.
 		theClone.on( 'load', function() {
-			console.log( 'image is loaded' );
 			theImage.replaceWith( theClone );
 
 			// Fire an event so that third-party code can perform actions after an image is loaded.
