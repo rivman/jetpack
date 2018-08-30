@@ -56,7 +56,9 @@ class Jetpack_Lazy_Images {
 		add_filter( 'get_avatar', array( $this, 'add_image_placeholders' ), PHP_INT_MAX );
 		add_filter( 'widget_text', array( $this, 'add_image_placeholders' ), PHP_INT_MAX );
 		add_filter( 'get_image_tag', array( $this, 'add_image_placeholders' ), PHP_INT_MAX);
-		add_filter( 'wp_get_attachment_image_attributes', array( __CLASS__, 'process_image_attributes' ), PHP_INT_MAX );
+
+		// TODO: Just commenting out this filter isn't a great idea. We added it originally to add some support for a theme.
+		// add_filter( 'wp_get_attachment_image_attributes', array( __CLASS__, 'process_image_attributes' ), PHP_INT_MAX );
 	}
 
 	public function remove_filters() {
@@ -65,7 +67,9 @@ class Jetpack_Lazy_Images {
 		remove_filter( 'get_avatar', array( $this, 'add_image_placeholders' ), PHP_INT_MAX );
 		remove_filter( 'widget_text', array( $this, 'add_image_placeholders' ), PHP_INT_MAX );
 		remove_filter( 'get_image_tag', array( $this, 'add_image_placeholders' ), PHP_INT_MAX);
-		remove_filter( 'wp_get_attachment_image_attributes', array( __CLASS__, 'process_image_attributes' ), PHP_INT_MAX );
+
+		// TODO: Same as todo above.
+		// remove_filter( 'wp_get_attachment_image_attributes', array( __CLASS__, 'process_image_attributes' ), PHP_INT_MAX );
 	}
 
 	/**
@@ -249,6 +253,23 @@ class Jetpack_Lazy_Images {
 				? ''
 				: $old_attributes['class']
 		);
+
+		if ( ! empty( $attributes['width'] ) && ! empty( $attributes['height'] ) ) {
+			$initial_style = empty( $attributes['style'] )
+				? ''
+				: $attributes['styles'];
+
+			if ( $initial_style && ';' !== substr( $initial_style, -1 ) ) {
+				$initial_style .= ';';
+			}
+
+			$attributes['style'] = sprintf(
+				'%s max-width: 100%%; width:%dpx; height: 0; padding-bottom: %s%%;',
+				$initial_style,
+				intval( $attributes['width'] ),
+				( $attributes['height'] / $attributes['width'] ) * 100
+			);
+		}
 
 		/**
 		 * Allow plugins and themes to override the attributes on the image before the content is updated.
