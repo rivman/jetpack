@@ -109,7 +109,7 @@ var jetpackLazyImagesModule = function( $ ) {
 		srcset = theImage.attr( 'data-lazy-srcset' );
 		sizes = theImage.attr( 'data-lazy-sizes' );
 		style = theImage.attr( 'style' ) || '';
-		style = style.replace( /max-width:.*/, '' );
+		style = style.replace( /\/\*\sjetpack-lazy-images\s\*\/.*/, '' );
 
 		theClone = theImage.clone();
 
@@ -124,6 +124,7 @@ var jetpackLazyImagesModule = function( $ ) {
 		// Remove lazy attributes from the clone.
 		theClone.removeAttr( 'data-lazy-srcset' ),
 		theClone.removeAttr( 'data-lazy-sizes' );
+		theClone.removeClass( 'is-placeholder' );
 
 		// Add the attributes we want on the finished image.
 		theClone.addClass( 'jetpack-lazy-image--handled' );
