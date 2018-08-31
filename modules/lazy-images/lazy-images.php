@@ -245,7 +245,12 @@ class Jetpack_Lazy_Images {
 		}
 
 		$attributes['srcset'] = self::get_placeholder_image();
-		$additional_classes   = 'jetpack-lazy-image';
+		$attributes['class']  = sprintf(
+			'%s jetpack-lazy-image',
+			empty( $old_attributes['class'] )
+				? ''
+				: $old_attributes['class']
+		);
 
 		$image_detail = self::get_image_detail( $attributes, $attachment, $size );
 		if ( $image_detail ) {
@@ -264,16 +269,8 @@ class Jetpack_Lazy_Images {
 				$image_detail['aspect_ratio']
 			);
 
-			$additional_classes .= ' is-placeholder';
+			$attributes['class'] .= ' is-placeholder';
 		}
-
-		$attributes['class'] = sprintf(
-			'%s %s',
-			empty( $old_attributes['class'] )
-				? ''
-				: $old_attributes['class'],
-			$additional_classes
-		);
 
 		/**
 		 * Allow plugins and themes to override the attributes on the image before the content is updated.
