@@ -3,6 +3,7 @@
  */
 import { combineReducers } from 'redux';
 import assign from 'lodash/assign';
+import get from 'lodash/get';
 
 /**
  * Internal dependencies
@@ -11,9 +12,12 @@ import {
 	JETPACK_SITE_VERIFY_GOOGLE_STATUS_FETCH,
 	JETPACK_SITE_VERIFY_GOOGLE_STATUS_FETCH_FAIL,
 	JETPACK_SITE_VERIFY_GOOGLE_STATUS_FETCH_SUCCESS,
+	JETPACK_SITE_VERIFY_GOOGLE_REQUEST,
+	JETPACK_SITE_VERIFY_GOOGLE_REQUEST_SUCCESS,
+	JETPACK_SITE_VERIFY_GOOGLE_REQUEST_FAIL,
 } from 'state/action-types';
 
-export const google = ( state = { fetching: false, verified: false }, action ) => {
+export const google = ( state = { fetching: false, verifying: false, verified: false }, action ) => {
 	switch ( action.type ) {
 		case JETPACK_SITE_VERIFY_GOOGLE_STATUS_FETCH:
 			return assign( {}, state, {
@@ -28,21 +32,25 @@ export const google = ( state = { fetching: false, verified: false }, action ) =
 			return assign( {}, state, {
 				fetching: false,
 				verified: action.verified,
-				token: action.token
+				token: action.token,
+				error: null,
 			} );
-
-		// case JETPACK_SETTING_UPDATE:
-		// case JETPACK_SETTINGS_UPDATE:
-		// 	return merge( {}, state, {
-		// 		settingsSent: mapValues( action.updatedOptions, () => true )
-		// 	} );
-		// case JETPACK_SETTING_UPDATE_FAIL:
-		// case JETPACK_SETTING_UPDATE_SUCCESS:
-		// case JETPACK_SETTINGS_UPDATE_FAIL:
-		// case JETPACK_SETTINGS_UPDATE_SUCCESS:
-		// 	return merge( {}, state, {
-		// 		settingsSent: mapValues( action.updatedOptions, () => false )
-		// 	} );
+		case JETPACK_SITE_VERIFY_GOOGLE_REQUEST:
+			return assign( {}, state, {
+				verifying: true
+			} );
+		case JETPACK_SITE_VERIFY_GOOGLE_REQUEST_SUCCESS:
+			return assign( {}, state, {
+				verifying: false,
+				verified: true,
+				error: null,
+			} );
+		case JETPACK_SITE_VERIFY_GOOGLE_REQUEST_FAIL:
+			return assign( {}, state, {
+				verifying: false,
+				verified: false,
+				error: action.error,
+			} );
 		default:
 			return state;
 	}
@@ -60,5 +68,25 @@ export const reducer = combineReducers( {
  * @return {Boolean}       Whether settings are being requested
  */
 export function isFetchingGoogleSiteVerify( state ) {
-	return !! state.jetpack.siteVerify.google.fetching;
+	return get( state, 'jetpack.siteVerify.google.fetching', false );
+}
+
+/**
+ * Returns true if currently verifying a site or false
+ * otherwise.
+ *
+ * @param  {Object}  state Global state tree
+ * @return {Boolean}       Whether settings is being verified
+ */
+export function isVerifyingGoogleSite( state ) {
+	return get( state, 'jetpack.siteVerify.google.verifying', false );
+}
+
+export function isConnectedToGoogleSiteVerificationAPI( state ) {
+	return ! isFetchingGoogleSiteVerify( state ) &&
+		get( state, 'jetpack.siteVerify.google.error.code', null ) !== 'no_token_for_user';
+}
+
+export function isSiteVerified( state ) {
+	return get( state, 'jetpack.siteVerify.google.verified', false );
 }

@@ -500,13 +500,11 @@ class Jetpack_Core_Json_Api_Endpoints {
 			return new WP_Error( 'error_checking_if_site_verified_google', sprintf( '%s: %s', $xml->getErrorCode(), $xml->getErrorMessage() ) );
 		} else {
 			$response = $xml->getResponse();
-			error_log(print_r( $response,1 ));
-			// if ( ! $response['verified'] && $response['token'] ) {
-			// 	// set token option now
-			// }
 
-			if ( $response['verified'] ) {
-				// if the site's already verified for any reason, let's save the google-verified option
+			if ( ! empty( $response['errors'] ) ) {
+				$error = new WP_Error;
+				$error->errors = $response['errors'];
+				return $error;
 			}
 
 			return $response;
@@ -514,8 +512,30 @@ class Jetpack_Core_Json_Api_Endpoints {
 	}
 
 	public static function verify_site( $request ) {
-		error_log("not implemented");
-		return new WP_Error( 'not_implemented', "Please create me");
+		Jetpack::load_xml_rpc_client();
+		$xml = new Jetpack_IXR_Client( array(
+			'user_id' => get_current_user_id(),
+		) );
+
+		$xml->query( 'jetpack.verifySite', array(
+				'user_id' => get_current_user_id(),
+				'service' => $request[ 'service' ],
+			)
+		);
+
+		if ( $xml->isError() ) {
+			return new WP_Error( 'error_verifying_site_google', sprintf( '%s: %s', $xml->getErrorCode(), $xml->getErrorMessage() ) );
+		} else {
+			$response = $xml->getResponse();
+
+			if ( ! empty( $response['errors'] ) ) {
+				$error = new WP_Error;
+				$error->errors = $response['errors'];
+				return $error;
+			}
+
+			return $response;
+		}
 	}
 
 	/**

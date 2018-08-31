@@ -21,17 +21,100 @@ import { ModuleSettingsForm as moduleSettingsForm } from 'components/module-sett
 import SettingsCard from 'components/settings-card';
 import SettingsGroup from 'components/settings-group';
 import JetpackBanner from 'components/jetpack-banner';
-import { checkVerifyStatusGoogle } from 'state/site-verify';
+import Gridicon from 'components/gridicon';
+import Button from 'components/button';
 import { getSiteID } from 'state/site/reducer';
 // eslint-disable-next-line no-unused-vars
 import requestExternalAccess from 'lib/sharing';
 import { getExternalServiceConnectUrl } from 'state/publicize/reducer';
-import { isFetchingGoogleSiteVerify } from 'state/site-verify/reducer';
+import {
+	checkVerifyStatusGoogle,
+	verifySiteGoogle,
+	isFetchingGoogleSiteVerify,
+	isConnectedToGoogleSiteVerificationAPI,
+	isSiteVerified,
+	isVerifyingGoogleSite
+} from 'state/site-verify';
 
 class VerificationServicesComponent extends React.Component {
 	activateVerificationTools = () => {
 		return this.props.updateOptions( { 'verification-tools': true } );
 	};
+
+	componentWillMount() {
+		this.checkVerifySite();
+	}
+
+	checkVerifySite() {
+		this.props.checkVerifyStatusGoogle().then( ( { verified, token } ) => {
+			if ( verified ) {
+				return;
+			}
+			if ( token ) {
+				this.props.updateOptions( { google: token } ).then( () => {
+					this.props.refreshSettings();
+					this.props.checkVerifyStatusGoogle();
+				} );
+			}
+		} ).catch( () => {
+			// ignore error
+		} );
+	}
+
+	handleClickGoogleVerify = () => {
+		if ( this.props.fetchingSiteData || this.props.fetchingGoogleSiteVerify ) {
+			return;
+		}
+
+		if ( ! this.props.isConnectedToGoogle ) {
+			requestExternalAccess( this.props.googleSiteVerificationConnectUrl, () => {
+				this.props.verifySiteGoogle();
+			} );
+			return;
+		}
+
+		if ( ! this.props.isSiteVerified ) {
+			this.props.verifySiteGoogle();
+		} else {
+			this.checkVerifySite();
+		}
+	};
+
+	renderVerifyButton( id ) {
+		if ( 'google' !== id ) {
+			return null;
+		}
+
+		const disabled = this.props.fetchingSiteData || this.props.fetchingGoogleSiteVerify || this.props.isSiteVerified;
+
+		if ( this.props.isVerifyingGoogleSite ) {
+			return (
+				<span className="jp-form-input-suffix">
+					{ __( 'Verifying...' ) }
+				</span>
+			);
+		} else if ( ! this.props.isConnectedToGoogle ) {
+			return (
+				<Button className="jp-form-input-suffix" type="button" disabled={ disabled } onClick={ this.handleClickGoogleVerify }>
+					{ __( 'Connect with Google' ) }
+				</Button>
+			);
+		} else if ( this.props.isSiteVerified ) {
+			return (
+				<span className="jp-form-input-suffix jp-form-suffix-site-verification-verified">
+					<Gridicon icon="checkmark-circle" size={ 20 } />
+					{ ' ' }
+					{ __( 'Your site is verified with Google' ) }
+				</span>
+			);
+		}
+
+		return (
+			<Button className="jp-form-input-suffix" type="button" disabled={ disabled } onClick={ this.handleClickGoogleVerify }>
+				{ __( 'Click to Verify' ) }
+			</Button>
+		);
+	}
 
 	render() {
 		const verification = this.props.getModule( 'verification-tools' );
@@ -150,7 +233,7 @@ class VerificationServicesComponent extends React.Component {
 										className="code"
 										disabled={ this.props.isUpdating( item.id ) }
 										onChange={ this.props.onOptionChange } />
-									{ this.renderConnectButton( item.id ) }
+									{ this.renderVerifyButton( item.id ) }
 								</FormLabel>
 							) )
 						}
@@ -158,49 +241,6 @@ class VerificationServicesComponent extends React.Component {
 				</SettingsGroup>
 			</SettingsCard>
 		);
-	}
-
-	renderConnectButton( id ) {
-		if ( 'google' !== id ) {
-			return null;
-		}
-
-		let label = __( 'Click to Verify' );
-
-		if ( this.props.fetchingGoogleSiteVerify ) {
-			label = __( 'Verifying...' );
-		}
-
-		const disabled = this.props.fetchingSiteData || this.props.fetchingGoogleSiteVerify;
-
-		return <button disabled={ disabled } onClick={ this.handleClickGoogleVerify }>{ label }</button>;
-	}
-
-	handleClickGoogleVerify = ( event ) => {
-		event.preventDefault();
-
-		// make a request
-		// token missing? request token, start again
-		//
-
-		this.props.checkVerifyStatusGoogle().then( data => {
-			// eslint-disable-next-line no-console
-			console.warn( 'verified', data );
-		} ).catch( error => {
-			// eslint-disable-next-line no-console
-			console.error( 'error', error );
-		} );
-
-		// requestExternalAccess( this.props.googleSiteVerificationConnectUrl, () => {
-		// 	this.props.checkVerifyStatusGoogle().then( ( { token } ) => {
-		// 		if ( token ) {
-		// 			this.props.updateOptions( { google: token } ).then( () => {
-		// 				this.props.refreshSettings();
-		// 				this.props.checkVerifyStatusGoogle();
-		// 			} );
-		// 		}
-		// 	} );
-		// } );
 	}
 }
 
@@ -210,10 +250,14 @@ export const VerificationServices = connect(
 			fetchingSiteData: isFetchingSiteData( state ),
 			siteID: getSiteID( state ),
 			googleSiteVerificationConnectUrl: getExternalServiceConnectUrl( state, 'google_site_verification' ),
-			fetchingGoogleSiteVerify: isFetchingGoogleSiteVerify( state )
+			fetchingGoogleSiteVerify: isFetchingGoogleSiteVerify( state ),
+			isConnectedToGoogle: isConnectedToGoogleSiteVerificationAPI( state ),
+			isSiteVerified: isSiteVerified( state ),
+			isVerifyingGoogleSite: isVerifyingGoogleSite( state ),
 		};
 	},
 	{
-		checkVerifyStatusGoogle
+		checkVerifyStatusGoogle,
+		verifySiteGoogle,
 	}
 )( moduleSettingsForm( VerificationServicesComponent ) );
