@@ -18,7 +18,11 @@
 
 	// Initialize Tracks and bump stats.
 	if ( 'undefined' !== typeof analytics ) {
-		analytics.initialize( tracksUser.userid, tracksUser.username );
+		analytics.initialize(
+			tracksUser.userid,
+			tracksUser.username,
+			tracksUser.blogid,
+		);
 	}
 
 	if ( tracksEvent.isAdmin ) {
