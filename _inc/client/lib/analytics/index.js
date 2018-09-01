@@ -8,7 +8,7 @@ const debug = require( 'debug' )( 'dops:analytics' ),
  * Internal dependencies
  */
 const config = require( 'config' );
-let	_superProps,
+let _superProps,
 	_user;
 
 // Load tracking scripts

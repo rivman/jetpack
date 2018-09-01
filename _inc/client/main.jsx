@@ -94,7 +94,7 @@ class Main extends React.Component {
 			analytics.initialize(
 				tracksUser.userid,
 				tracksUser.username,
-        tracksUser.blogid,
+				tracksUser.blogid,
 			);
 		}
 	};
