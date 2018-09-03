@@ -14,7 +14,7 @@
 		echo nl2br( esc_html( $instance['customtext'] ) );
 	} ?>
 
-	<a href="<?php
+	<a target="_blank" href="<?php
 		$policy_link_text = 'default' === $instance['policy-url'] || empty( $instance['custom-policy-url'] )
 			? $instance['default-policy-url']
 			: $instance['custom-policy-url'];
