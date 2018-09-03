@@ -35,6 +35,7 @@ import {
 	isSiteVerified,
 	isVerifyingGoogleSite
 } from 'state/site-verify';
+import { userCanManageOptions } from 'state/initial-state';
 
 class VerificationServicesComponent extends React.Component {
 	activateVerificationTools = () => {
@@ -82,6 +83,10 @@ class VerificationServicesComponent extends React.Component {
 
 	renderVerifyButton( id ) {
 		if ( 'google' !== id ) {
+			return null;
+		}
+
+		if ( ! this.props.userCanManageOptions ) {
 			return null;
 		}
 
@@ -254,6 +259,7 @@ export const VerificationServices = connect(
 			isConnectedToGoogle: isConnectedToGoogleSiteVerificationAPI( state ),
 			isSiteVerified: isSiteVerified( state ),
 			isVerifyingGoogleSite: isVerifyingGoogleSite( state ),
+			userCanManageOptions: userCanManageOptions( state )
 		};
 	},
 	{

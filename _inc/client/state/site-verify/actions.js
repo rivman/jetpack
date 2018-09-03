@@ -26,10 +26,6 @@ export const checkVerifyStatusGoogle = () => {
 				token: data.token
 			} );
 
-			if ( data.verified ) {
-				dispatch( createNotice( 'is-success', __( 'Site is verified' ), { id: 'verify-site-google-verified', duration: 2000 } ) );
-			}
-
 			return data;
 		} ).catch( error => {
 			dispatch( {
